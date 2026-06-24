@@ -1,14 +1,97 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 const newTodo = ref('');
 const filter = ref('all');
-let nextId = 3;
+const todos = ref([]);
+const isLoading = ref(true);
+const loadError = ref('');
 
-const todos = ref([
-  { id: 1, text: 'Set up the project', completed: true },
-  { id: 2, text: 'Build the todo app UI', completed: false }
-]);
+async function requestTodos(url, options = {}) {
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    ...options
+  });
+
+  if (!response.ok) {
+    throw new Error('Unable to save tasks right now.');
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return response.json();
+}
+
+async function loadTodos() {
+  isLoading.value = true;
+  loadError.value = '';
+
+  try {
+    todos.value = await requestTodos('/api/tasks');
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : 'Unable to load tasks.';
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function addTodo() {
+  const text = newTodo.value.trim();
+  if (!text) {
+    return;
+  }
+
+  try {
+    await requestTodos('/api/tasks', {
+      method: 'POST',
+      body: JSON.stringify({ text })
+    });
+    newTodo.value = '';
+    await loadTodos();
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : 'Unable to add task.';
+  }
+}
+
+async function toggleTodo(todo) {
+  try {
+    await requestTodos(`/api/tasks/${todo.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ completed: !todo.completed })
+    });
+    await loadTodos();
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : 'Unable to update task.';
+  }
+}
+
+async function removeTodo(id) {
+  try {
+    await requestTodos(`/api/tasks/${id}`, {
+      method: 'DELETE'
+    });
+    await loadTodos();
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : 'Unable to remove task.';
+  }
+}
+
+async function clearCompleted() {
+  try {
+    await requestTodos('/api/tasks/completed', {
+      method: 'DELETE'
+    });
+    await loadTodos();
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : 'Unable to clear completed tasks.';
+  }
+}
+
+onMounted(loadTodos);
 
 const activeCount = computed(() =>
   todos.value.filter((todo) => !todo.completed).length
@@ -34,28 +117,13 @@ const remainingLabel = computed(() =>
   activeCount.value === 1 ? 'item left' : 'items left'
 );
 
-function addTodo() {
-  const text = newTodo.value.trim();
-  if (!text) {
-    return;
+const emptyLabel = computed(() => {
+  if (!todos.value.length) {
+    return 'No todos yet. Add one above.';
   }
 
-  todos.value.unshift({
-    id: nextId,
-    text,
-    completed: false
-  });
-  nextId += 1;
-  newTodo.value = '';
-}
-
-function removeTodo(id) {
-  todos.value = todos.value.filter((todo) => todo.id !== id);
-}
-
-function clearCompleted() {
-  todos.value = todos.value.filter((todo) => !todo.completed);
-}
+  return 'No tasks match this filter.';
+});
 </script>
 
 <template>
@@ -73,17 +141,21 @@ function clearCompleted() {
         <button type="submit">Add</button>
       </form>
 
-      <ul v-if="todos.length" class="todo-list">
+      <p v-if="loadError" class="error">{{ loadError }}</p>
+
+      <p v-if="isLoading" class="empty">Loading tasks...</p>
+
+      <ul v-else-if="filteredTodos.length" class="todo-list">
         <li v-for="todo in filteredTodos" :key="todo.id" class="todo-item">
           <label>
-            <input v-model="todo.completed" type="checkbox">
+            <input :checked="todo.completed" type="checkbox" @change="toggleTodo(todo)">
             <span :class="{ done: todo.completed }">{{ todo.text }}</span>
           </label>
           <button class="delete" type="button" @click="removeTodo(todo.id)">Remove</button>
         </li>
       </ul>
 
-      <p v-else class="empty">No todos yet. Add one above.</p>
+      <p v-else class="empty">{{ emptyLabel }}</p>
 
       <footer class="todo-footer">
         <span>{{ activeCount }} {{ remainingLabel }}</span>

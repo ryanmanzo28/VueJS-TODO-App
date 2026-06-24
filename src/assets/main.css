@@ -120,6 +120,15 @@ button:disabled {
     color: #667589;
 }
 
+.error {
+    margin: 16px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff1f1;
+    color: #b42318;
+    border: 1px solid #f5c2c7;
+}
+
 @media (max-width: 560px) {
     .todo-card {
         padding: 16px;
