@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<title>Login</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #bbcee8;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+      }
+      .login-page {
+        text-align: center;
+      }
+    </style>
+
+  </head>
+  <link rel="stylesheet" href="/src/assets/main.css">
+  <body>
+    <main class="login-page">
+      <h1 id="loginpagemessage">Login Page</h1>
+      
+    </main>
+  </body>
+
+  <script>
+    if (localStorage.getItem('Username') && localStorage.getItem('Password')) {
+        alert('you are already logged in, redirecting to profile page');
+        window.location.href = '/profile.html';
+    } else {
+        document.querySelector('.login-page').innerHTML += `
+            <form id="login-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required><br><br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required><br><br>
+                <button type="submit">Login</button>
+            </form>
+        `;
+        document.addEventListener('submit', (event) => {
+    if (event.target.id === 'login-form') {
+        event.preventDefault();
+
+        const formData = {
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+        
+        console.log(formData);
+        localStorage.setItem('username', formData.username);
+        localStorage.setItem('password', formData.password);
+        alert('Login successful! Redirecting to profile page...');
+        window.location.href = '/profile.html';
+    }
+});
+    }
+  </script>

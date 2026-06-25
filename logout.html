@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head></head>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const isLoggedIn = Boolean(localStorage.getItem('username') && localStorage.getItem('password'));
+        if (isLoggedIn) {
+            localStorage.removeItem('username');
+            localStorage.removeItem('password');
+            localStorage.removeItem('profilePicture');
+            alert('You have been logged out. Redirecting to login page...');
+            window.location.href = '/login.html';
+        } else {
+            alert('You are not logged in. Redirecting to login page...');
+            window.location.href = '/login.html';
+        }
+    });
+  </script>
+   
+    

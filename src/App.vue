@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useNotifications } from './composables/useNotifications.js';
+import Navbar from '../navbar.vue';
 
 const newTodo = ref('');
 const filter = ref('all');
@@ -245,6 +246,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <Navbar />
   <main class="todo-app">
     <a class="profile-icon-button" href="/profile.html" aria-label="Profile">
       <span class="profile-icon-avatar" aria-hidden="true">RM</span>

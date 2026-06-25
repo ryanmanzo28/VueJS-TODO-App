@@ -1,67 +1,94 @@
 <!doctype html>
 <html lang="en">
   <head>
+        <link rel="stylesheet" href="/src/assets/main.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+    <title id="profile-text">Profile</title>
     <style>
       html, body {
         margin: 0;
         width: 100%;
         height: 100%;
-        background: #f4f7fb;
+        background: #bbcee8;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .profile-content {
+        display: flex;
+        justify-content: center;
+        padding-top: 32px;
+      }
+      .profile-page {
+        text-align: center;
+      }
+      #profile-text {
+        position: top;
+        top: 100%;
+        left: 50%;
+        right: 50%;
       }
     </style>
 
   </head>
   <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="/" class="logo">HydraCor</a>
+        <ul class="nav-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/profile.html">Profile</a></li>
+          <li><a href="/logout.html">Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+    <div class="profile-content">
     <main class="profile-page">
       <h1>Profile Page</h1>
       
     </main>
+    </div>
   </body>
 </html>
-<script> 
-    if (username) {
-        document.querySelector('.profile-page').innerHTML += `<p>Welcome, ${username}!</p>`;
-    } else {
-        document.querySelector('.profile-page').innerHTML += `<label for="username">Enter your username:</label>
-        <input type="text" id="username" name="username">
-        <button id="save-username">Save</button>`;
+<script>
+    const profilePage = document.querySelector('.profile-page');
+    const isLoggedIn = Boolean(localStorage.getItem('username') && localStorage.getItem('password'));
 
-    }
-    if (profilePicture) {
-        document.querySelector('.profile-page').innerHTML += `<img src="${profilePicture}" alt="Profile Picture" style="width: 100px; height: 100px; border-radius: 50%;">`;
+    if (!isLoggedIn) {
+      document.body.style.justifyContent = 'flex-start';
+      profilePage.innerHTML = `<p>You must be logged in to see your profile.</p><button id="login-button">Login</button>`;
+        document.getElementById('login-button').addEventListener('click', () => {
+            window.location.href = '/login.html';
+        });
     } else {
-        document.querySelector('.profile-page').innerHTML += `<label for="profile-picture">Upload a profile picture:</label>
-        <input type="file" id="profile-picture" name="profile-picture" accept="image/*">
-        <button id="save-profile-picture">Save</button>`;
-    }
-    document.getElementById('save-username')?.addEventListener('click', () => {
-        const usernameInput = document.getElementById('username');
-        if (usernameInput.value) {
-            localStorage.setItem('username', usernameInput.value);
-            location.reload();
+        profilePage.innerHTML += `<p>Welcome, ${localStorage.getItem('username')}!</p>`;
+
+        if (localStorage.getItem('profilePicture')) {
+            profilePage.innerHTML += `<img src="${localStorage.getItem('profilePicture')}" alt="Profile Picture" style="width: 100px; height: 100px; border-radius: 50%;">`;
+        } else {
+            profilePage.innerHTML += `<label for="profile-picture">Upload a profile picture:</label>
+            <input type="file" id="profile-picture" name="profile-picture" accept="image/*">
+            <button id="save-profile-picture">Save</button>`;
         }
-    });
-    document.getElementById('save-profile-picture')?.addEventListener('click', () => {
-        const profilePictureInput = document.getElementById('profile-picture');
-        if (profilePictureInput.files.length > 0) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                localStorage.setItem('profilePicture', e.target.result);
-                location.reload();
-            };
-            reader.readAsDataURL(profilePictureInput.files[0]);
-        }
-    });
-    if (username || password) {
-        document.querySelector('.profile-page').innerHTML += `<button id="logout">Logout</button>`;
-        document.getElementById('logout').addEventListener('click', () => {
+
+        document.getElementById('save-profile-picture')?.addEventListener('click', () => {
+            const profilePictureInput = document.getElementById('profile-picture');
+            if (profilePictureInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    localStorage.setItem('profilePicture', e.target.result);
+                    location.reload();
+                };
+                reader.readAsDataURL(profilePictureInput.files[0]);
+            }
+        });
+
+        profilePage.innerHTML += `<button id="logout-button">Logout</button>`;
+        document.getElementById('logout-button').addEventListener('click', () => {
             localStorage.removeItem('username');
             localStorage.removeItem('profilePicture');
             location.reload();
         });
     }
-    
 </script>
