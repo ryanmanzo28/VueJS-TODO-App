@@ -43,8 +43,8 @@
         event.preventDefault();
 
         const formData = {
-            username: document.getElementById('username').value,
-            password: document.getElementById('password').value
+            username: bcrypt.hash(document.getElementById('username').value, 10),
+            password: bcrypt.hash(document.getElementById('password').value, 10)
         };
         
         console.log(formData);

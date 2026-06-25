@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useNotifications } from './composables/useNotifications.js';
 import Navbar from '../navbar.vue';
 
+const currentUser = localStorage.getItem('username') ?? '';
+
 const newTodo = ref('');
 const filter = ref('all');
 const todos = ref([]);
@@ -33,7 +35,7 @@ async function loadTodos() {
   loadError.value = '';
 
   try {
-    todos.value = await requestTodos('/api/tasks');
+    todos.value = await requestTodos(`/api/tasks?user=${encodeURIComponent(currentUser)}`);
     syncAlarmsWithTodos();
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : 'Unable to load tasks.';
@@ -51,7 +53,7 @@ async function addTodo() {
   try {
     await requestTodos('/api/tasks', {
       method: 'POST',
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text, user: currentUser })
     });
     newTodo.value = '';
     await loadTodos();
@@ -90,7 +92,7 @@ async function clearCompleted() {
       .filter((todo) => todo.completed)
       .map((todo) => todo.id);
 
-    await requestTodos('/api/tasks/completed', {
+    await requestTodos(`/api/tasks/completed?user=${encodeURIComponent(currentUser)}`, {
       method: 'DELETE'
     });
 
@@ -101,7 +103,10 @@ async function clearCompleted() {
   }
 }
 
-onMounted(loadTodos);
+onMounted(async () => {
+  restoreAlarmsFromStorage();
+  await loadTodos();
+});
 
 const activeCount = computed(() =>
   todos.value.filter((todo) => !todo.completed).length
@@ -152,12 +157,42 @@ const {
 } = useNotifications();
 
 // ---------------------------------------------------------------------------
-// Alarms  (in-memory; keyed by task id)
+// Alarms  (persisted to localStorage per user; keyed by task id)
 // ---------------------------------------------------------------------------
 
-const alarms = ref({});       // { [todoId]: { time: string, timerId: number } }
+const alarms = ref({});       // { [todoId]: { time, timerId, text } }
 const alarmInputs = ref({});  // { [todoId]: string }  – draft input per card
 const alarmPanelOpen = ref({}); // { [todoId]: boolean }
+
+const ALARM_STORAGE_KEY = `alarms_${currentUser}`;
+
+function saveAlarmsToStorage() {
+  const data = {};
+  Object.entries(alarms.value).forEach(([todoId, alarm]) => {
+    data[todoId] = { time: alarm.time, text: alarm.text };
+  });
+  localStorage.setItem(ALARM_STORAGE_KEY, JSON.stringify(data));
+}
+
+function restoreAlarmsFromStorage() {
+  const raw = localStorage.getItem(ALARM_STORAGE_KEY);
+  if (!raw) return;
+  let stored;
+  try { stored = JSON.parse(raw); } catch { return; }
+  Object.entries(stored).forEach(([todoId, { time, text }]) => {
+    const delay = new Date(time).getTime() - Date.now();
+    if (delay <= 0) return;
+    const timerId = setTimeout(() => {
+      notifySuccess(`Reminder: "${text}"`, { title: '⏰ Task Alarm', duration: 0 });
+      sendPushNotification('⏰ Task Alarm', `Reminder: "${text}"`);
+      delete alarms.value[todoId];
+      delete alarmInputs.value[todoId];
+      delete alarmPanelOpen.value[todoId];
+      saveAlarmsToStorage();
+    }, delay);
+    alarms.value[todoId] = { time, timerId, text };
+  });
+}
 
 function toggleAlarmPanel(todoId) {
   alarmPanelOpen.value[todoId] = !alarmPanelOpen.value[todoId];
@@ -195,8 +230,9 @@ async function setAlarm(todo) {
     delete alarmPanelOpen.value[todo.id];
   }, delay);
 
-  alarms.value[todo.id] = { time, timerId };
+  alarms.value[todo.id] = { time, timerId, text: todo.text };
   alarmPanelOpen.value[todo.id] = false;
+  saveAlarmsToStorage();
   notifyInfo(`Alarm set for "${todo.text}".`);
 }
 
@@ -208,6 +244,7 @@ function cancelAlarm(todoId) {
 
   delete alarmInputs.value[todoId];
   delete alarmPanelOpen.value[todoId];
+  saveAlarmsToStorage();
 }
 
 function formatAlarmTime(isoString) {
@@ -241,7 +278,8 @@ const alarmMin = computed(() => {
 });
 
 onBeforeUnmount(() => {
-  Object.keys(alarms.value).forEach((todoId) => cancelAlarm(todoId));
+  // Only clear JS timers — do NOT wipe localStorage so alarms survive logout/reload
+  Object.values(alarms.value).forEach(({ timerId }) => clearTimeout(timerId));
 });
 </script>
 

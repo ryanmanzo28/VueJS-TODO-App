@@ -69,9 +69,6 @@ function notifyInfo(message, options = {}) {
   return addNotification(message, 'info', options);
 }
 
-// ---------------------------------------------------------------------------
-// Browser Push Notification helpers (skeleton — requires user permission)
-// ---------------------------------------------------------------------------
 
 async function requestPushPermission() {
   if (!('Notification' in window)) {

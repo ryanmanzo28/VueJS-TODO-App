@@ -4,11 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
 const tasksFilePath = fileURLToPath(new URL('./data/tasks.json', import.meta.url));
-
+// seed tasks are deprecated ill remove them wheni finish with all the other stuff but for now just dont use them
 const seedTasks = [
-  { id: '1', text: 'Set up the project', completed: true },
-  { id: '2', text: 'Build the todo app UI', completed: false }
+  
 ];
+// removed seed tasks but ill keep the code here for now in case i want to add it back or theres a breaking issue but dont use it
 
 async function ensureTasksFile() {
   try {
@@ -86,7 +86,9 @@ async function handleTasksRequest(req, res) {
     const tasks = await readTasks();
 
     if (requestUrl.pathname === '/api/tasks' && req.method === 'GET') {
-      sendJson(res, 200, tasks);
+      const user = requestUrl.searchParams.get('user');
+      const result = user ? tasks.filter((t) => t.user === user) : tasks;
+      sendJson(res, 200, result);
       return true;
     }
 
@@ -101,6 +103,7 @@ async function handleTasksRequest(req, res) {
 
       const newTask = {
         id: randomUUID(),
+        user: String(body.user ?? ''),
         text,
         completed: false
       };
@@ -112,7 +115,10 @@ async function handleTasksRequest(req, res) {
     }
 
     if (requestUrl.pathname === '/api/tasks/completed' && req.method === 'DELETE') {
-      const remainingTasks = tasks.filter((task) => !task.completed);
+      const user = requestUrl.searchParams.get('user');
+      const remainingTasks = user
+        ? tasks.filter((task) => !(task.completed && task.user === user))
+        : tasks.filter((task) => !task.completed);
       await writeTasks(remainingTasks);
       res.statusCode = 204;
       res.end();
