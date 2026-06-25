@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useNotifications } from './composables/useNotifications.js';
 
 const newTodo = ref('');
@@ -33,6 +33,7 @@ async function loadTodos() {
 
   try {
     todos.value = await requestTodos('/api/tasks');
+    syncAlarmsWithTodos();
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : 'Unable to load tasks.';
   } finally {
@@ -75,6 +76,7 @@ async function removeTodo(id) {
     await requestTodos(`/api/tasks/${id}`, {
       method: 'DELETE'
     });
+    cancelAlarm(id);
     await loadTodos();
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : 'Unable to remove task.';
@@ -83,9 +85,15 @@ async function removeTodo(id) {
 
 async function clearCompleted() {
   try {
+    const completedIds = todos.value
+      .filter((todo) => todo.completed)
+      .map((todo) => todo.id);
+
     await requestTodos('/api/tasks/completed', {
       method: 'DELETE'
     });
+
+    completedIds.forEach((id) => cancelAlarm(id));
     await loadTodos();
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : 'Unable to clear completed tasks.';
@@ -159,7 +167,7 @@ function toggleAlarmPanel(todoId) {
   }
 }
 
-function setAlarm(todo) {
+async function setAlarm(todo) {
   const time = alarmInputs.value[todo.id];
   if (!time) return;
 
@@ -173,10 +181,17 @@ function setAlarm(todo) {
   // Clear any previous alarm for this task
   cancelAlarm(todo.id);
 
+  // Request push permission during user interaction (button click).
+  if ('Notification' in window && Notification.permission === 'default') {
+    await requestPushPermission();
+  }
+
   const timerId = setTimeout(() => {
     notifySuccess(`Reminder: "${todo.text}"`, { title: '⏰ Task Alarm', duration: 0 });
     sendPushNotification('⏰ Task Alarm', `Reminder: "${todo.text}"`);
     delete alarms.value[todo.id];
+    delete alarmInputs.value[todo.id];
+    delete alarmPanelOpen.value[todo.id];
   }, delay);
 
   alarms.value[todo.id] = { time, timerId };
@@ -189,6 +204,9 @@ function cancelAlarm(todoId) {
     clearTimeout(alarms.value[todoId].timerId);
     delete alarms.value[todoId];
   }
+
+  delete alarmInputs.value[todoId];
+  delete alarmPanelOpen.value[todoId];
 }
 
 function formatAlarmTime(isoString) {
@@ -200,8 +218,30 @@ function formatAlarmTime(isoString) {
   });
 }
 
+function toDatetimeLocalValue(date) {
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function syncAlarmsWithTodos() {
+  const validTodoIds = new Set(todos.value.map((todo) => String(todo.id)));
+
+  Object.keys(alarms.value).forEach((todoId) => {
+    if (!validTodoIds.has(String(todoId))) {
+      cancelAlarm(todoId);
+    }
+  });
+}
+
 // Minimum datetime-local value (now, rounded to the current minute)
-const alarmMin = computed(() => new Date(Date.now() - (Date.now() % 60000)).toISOString().slice(0, 16));
+const alarmMin = computed(() => {
+  const roundedNow = new Date(Date.now() - (Date.now() % 60000));
+  return toDatetimeLocalValue(roundedNow);
+});
+
+onBeforeUnmount(() => {
+  Object.keys(alarms.value).forEach((todoId) => cancelAlarm(todoId));
+});
 </script>
 
 <template>
