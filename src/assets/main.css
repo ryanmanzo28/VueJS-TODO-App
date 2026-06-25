@@ -56,41 +56,140 @@ button:disabled {
     opacity: 0.55;
 }
 
-.todo-list {
+/* ── Task cards ───────────────────────────────────────────────────────── */
+
+.task-list {
     list-style: none;
     margin: 18px 0;
     padding: 0;
     display: grid;
-    gap: 8px;
+    gap: 10px;
 }
 
-.todo-item {
+.task-card-item {
+    border: 1px solid #e4ebf5;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(25, 34, 53, 0.06);
+    overflow: hidden;
+    transition: box-shadow 0.15s ease;
+}
+
+.task-card-item:hover {
+    box-shadow: 0 4px 16px rgba(25, 34, 53, 0.11);
+}
+
+.task-card-done {
+    background: #f9fafb;
+    border-color: #edf0f5;
+}
+
+.task-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    border: 1px solid #e4ebf5;
-    border-radius: 10px;
-    padding: 10px 12px;
+    padding: 12px 14px;
 }
 
-.todo-item label {
+.task-card-label {
     display: flex;
     align-items: center;
     gap: 10px;
     cursor: pointer;
+    flex: 1;
+    min-width: 0;
 }
 
-.todo-item .done {
+.task-card-label span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task-card-label .done {
     text-decoration: line-through;
     color: #7b8697;
 }
 
-.todo-item .delete,
-.todo-footer .clear,
-.filters button {
+.task-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.task-alarm-badge {
+    font-size: 0.75rem;
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    border-radius: 20px;
+    padding: 3px 8px;
+    white-space: nowrap;
+}
+
+.task-btn-alarm {
+    background: #f4f7fb;
+    border: 1px solid #ccd7e6;
+    color: #1d2735;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 0.95rem;
+    line-height: 1;
+    transition: background 0.15s;
+}
+
+.task-btn-alarm:hover,
+.task-btn-alarm-active {
+    background: #e8f0fd;
+    border-color: #3370d6;
+}
+
+.task-btn-remove {
     background: #fff;
+    border: 1px solid #e4ebf5;
     color: #1f3966;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+
+.task-btn-remove:hover {
+    background: #fff1f1;
+    border-color: #f5c2c7;
+    color: #b42318;
+}
+
+/* ── Alarm input row ──────────────────────────────────────────────────── */
+
+.task-alarm-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px 12px;
+    border-top: 1px solid #e4ebf5;
+    background: #f9fbff;
+    flex-wrap: wrap;
+}
+
+.task-alarm-input {
+    flex: 1;
+    min-width: 180px;
+    border: 1px solid #ccd7e6;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 0.9rem;
+    background: #fff;
+}
+
+.task-alarm-cancel {
+    background: #fff;
+    border: 1px solid #f5c2c7;
+    color: #b42318;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 0.85rem;
 }
 
 .todo-footer {
@@ -127,6 +226,102 @@ button:disabled {
     background: #fff1f1;
     color: #b42318;
     border: 1px solid #f5c2c7;
+}
+
+/* ── Notification tray ────────────────────────────────────────────────── */
+
+.notif-tray {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 360px;
+    width: 100%;
+    pointer-events: none;
+}
+
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    pointer-events: all;
+    animation: notif-in 0.2s ease;
+}
+
+@keyframes notif-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.notif-success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.notif-error {
+    background: #fff1f1;
+    border-color: #f5c2c7;
+    color: #b42318;
+}
+
+.notif-warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+.notif-info {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e40af;
+}
+
+.notif-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.notif-title {
+    font-weight: 600;
+}
+
+.notif-close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 0.85rem;
+    line-height: 1;
+    border-radius: 4px;
+}
+
+.notif-close:hover {
+    opacity: 1;
+}
+
+.notif-clear-all {
+    align-self: flex-end;
+    background: #fff;
+    border: 1px solid #ccd7e6;
+    color: #1d2735;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    pointer-events: all;
 }
 
 @media (max-width: 560px) {
