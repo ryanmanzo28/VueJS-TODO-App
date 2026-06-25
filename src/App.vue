@@ -228,6 +228,7 @@ async function setAlarm(todo) {
     delete alarms.value[todo.id];
     delete alarmInputs.value[todo.id];
     delete alarmPanelOpen.value[todo.id];
+    saveAlarmsToStorage();
   }, delay);
 
   alarms.value[todo.id] = { time, timerId, text: todo.text };
