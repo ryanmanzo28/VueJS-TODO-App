@@ -1,5 +1,20 @@
-# Todo APP
+# Todo App
 
-This app persists tasks in `data/tasks.json` through a small Vite middleware API.
+Minimal Vue + Vite todo app with a tiny local API.
 
-Run it with `npm run dev`, then use the todo UI normally. Changes are written to the JSON file on each add, update, delete, and clear-completed action.
+## Setup
+
+1. Install dependencies:
+	npm install
+2. Start development server:
+	npm run dev
+
+## Available Scripts
+
+- npm run dev: Start the app locally.
+- npm run build: Create a production build in dist/.
+- npm run preview: Preview the production build.
+
+## Data Storage
+
+Tasks are persisted to data/tasks.json through the API middleware in tasks-api.js.

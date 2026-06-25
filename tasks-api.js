@@ -87,7 +87,9 @@ async function handleTasksRequest(req, res) {
 
     if (requestUrl.pathname === '/api/tasks' && req.method === 'GET') {
       const user = requestUrl.searchParams.get('user');
-      const result = user ? tasks.filter((t) => t.user === user) : tasks;
+      const result = requestUrl.searchParams.has('user')
+        ? tasks.filter((t) => t.user === (user ?? ''))
+        : tasks;
       sendJson(res, 200, result);
       return true;
     }
@@ -116,8 +118,8 @@ async function handleTasksRequest(req, res) {
 
     if (requestUrl.pathname === '/api/tasks/completed' && req.method === 'DELETE') {
       const user = requestUrl.searchParams.get('user');
-      const remainingTasks = user
-        ? tasks.filter((task) => !(task.completed && task.user === user))
+      const remainingTasks = requestUrl.searchParams.has('user')
+        ? tasks.filter((task) => !(task.completed && task.user === (user ?? '')))
         : tasks.filter((task) => !task.completed);
       await writeTasks(remainingTasks);
       res.statusCode = 204;
