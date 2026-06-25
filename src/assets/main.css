@@ -21,6 +21,8 @@ body {
     position: absolute;
     top: 16px;
     right: 16px;
+    display: inline-flex;
+    text-decoration: none;
     border: none;
     background: transparent;
     padding: 0;

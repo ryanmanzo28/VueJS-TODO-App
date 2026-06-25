@@ -246,9 +246,9 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="todo-app">
-    <button class="profile-icon-button" type="button" aria-label="Profile">
+    <a class="profile-icon-button" href="/profile.html" aria-label="Profile">
       <span class="profile-icon-avatar" aria-hidden="true">RM</span>
-    </button>
+    </a>
 
     <section class="todo-card">
       <h1>Todo App</h1>
@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
           aria-label="Dismiss notification"
           @click="dismissNotification(notif.id)"
         >
-          ✕
+          x
         </button>
       </div>
 
