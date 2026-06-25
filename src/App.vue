@@ -246,6 +246,10 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="todo-app">
+    <button class="profile-icon-button" type="button" aria-label="Profile">
+      <span class="profile-icon-avatar" aria-hidden="true">RM</span>
+    </button>
+
     <section class="todo-card">
       <h1>Todo App</h1>
 

@@ -14,6 +14,30 @@ body {
     display: grid;
     place-items: center;
     padding: 24px;
+    position: relative;
+}
+
+.profile-icon-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+.profile-icon-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: #1f3966;
+    color: #fff;
+    border: 2px solid #d9e4f3;
 }
 
 .todo-card {
